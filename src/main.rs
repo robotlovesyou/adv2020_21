@@ -185,25 +185,22 @@ fn read_foods<'a>(lines: impl Iterator<Item = &'a str>) -> Vec<Food> {
     let mut id = 0;
     for line in lines {
         if let Some(caps) = FOOD_REGEX.captures(line) {
+            let fold = |mut all: HashSet<Rc<str>>, item: &str| {
+                if !item.trim().is_empty() {
+                    all.insert(Rc::from(item));
+                }
+                all
+            };
+
             let ingredients =
                 caps["ingredients"]
                     .split(' ')
-                    .fold(HashSet::new(), |mut all, ingredient| {
-                        if !ingredient.trim().is_empty() {
-                            all.insert(Rc::from(ingredient));
-                        }
-                        all
-                    });
+                    .fold(HashSet::new(), fold);
 
             let allergens =
                 caps["allergens"]
                     .split(", ")
-                    .fold(HashSet::new(), |mut all, allergen| {
-                        if !allergen.trim().is_empty() {
-                            all.insert(Rc::from(allergen));
-                        }
-                        all
-                    });
+                    .fold(HashSet::new(), fold);
 
             foods.push(Food::new(id, ingredients, allergens));
             id += 1;
